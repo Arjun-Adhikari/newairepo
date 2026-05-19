@@ -31,7 +31,10 @@ ${formData.keywords}
 
 Tags:
 ${formData.tags}
-`;
+
+Steps:
+${formData.steps.map((s, i) => `${i + 1}. ${s.text}`).join("\n")}
+`.trim();
 
   // GENERATE EMBEDDING
   const embeddingResponse = await openai.embeddings.create({
@@ -40,6 +43,12 @@ ${formData.tags}
   });
 
   const embedding = embeddingResponse.data[0].embedding;
+
+  // Steps stored as JSONB: [{ text: string }, ...]
+  // Filter out any empty steps the user left blank
+  const steps = formData.steps
+    .map((s) => ({ text: s.text.trim() }))
+    .filter((s) => s.text.length > 0);
 
   // INSERT INTO SUPABASE
   const { data, error } = await supabase.from("knowledge_base").insert({
@@ -55,19 +64,26 @@ ${formData.tags}
 
     category: formData.category,
 
-    tags: formData.tags?.split(",").map((tag) => tag.trim()),
+    tags: formData.tags
+      ? formData.tags.split(",").map((tag) => tag.trim()).filter(Boolean)
+      : [],
 
-    keywords: formData.keywords?.split(",").map((keyword) => keyword.trim()),
+    keywords: formData.keywords
+      ? formData.keywords.split(",").map((keyword) => keyword.trim()).filter(Boolean)
+      : [],
 
     common_user_phrases: formData.common_user_phrases
-      ?.split(",")
-      .map((phrase) => phrase.trim()),
+      ? formData.common_user_phrases.split(",").map((phrase) => phrase.trim()).filter(Boolean)
+      : [],
+
+    steps,
 
     priority: Number(formData.priority),
 
     visibility: formData.visibility,
 
-    is_active: formData.is_active,
+    // Default to true if not set
+    is_active: formData.is_active ?? true,
 
     embedding,
   });
