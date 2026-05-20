@@ -1,3 +1,7 @@
+export interface KnowledgeBaseStep {
+  text: string;
+}
+
 export interface KnowledgeBaseFormData {
   type: string;
   title: string;
@@ -8,8 +12,8 @@ export interface KnowledgeBaseFormData {
   tags: string;
   keywords: string;
   common_user_phrases: string;
+  steps: KnowledgeBaseStep[];
   priority: number;
-  visibility: string;
+  visibility: "public" | "private";
   is_active: boolean;
 }
-

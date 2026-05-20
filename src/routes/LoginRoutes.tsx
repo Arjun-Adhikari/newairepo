@@ -57,7 +57,7 @@ const LoginRoutes = {
         {
           path: APP_AUTH === AuthProvider.JWT ? '/' : 'jwt',
           children: [
-            { path: '/', element: <JwtAuthLogin /> },
+            { index: true, element: <JwtAuthLogin /> },
             { path: 'login', element: <JwtAuthLogin /> },
             { path: 'register', element: <JwtAuthRegister /> },
             { path: 'forgot-password', element: <JwtAuthForgotPassword /> },
@@ -69,6 +69,7 @@ const LoginRoutes = {
         {
           path: APP_AUTH === AuthProvider.FIREBASE ? '/' : 'firebase',
           children: [
+            { index: true, element: <FirebaseAuthLogin /> },
             { path: 'login', element: <FirebaseAuthLogin /> },
             { path: 'register', element: <FirebaseAuthRegister /> },
             { path: 'forgot-password', element: <FirebaseAuthForgotPassword /> },
@@ -80,6 +81,7 @@ const LoginRoutes = {
         {
           path: APP_AUTH === AuthProvider.AUTH0 ? '/' : 'auth0',
           children: [
+            { index: true, element: <Auth0AuthLogin /> },
             { path: 'login', element: <Auth0AuthLogin /> },
             { path: 'register', element: <Auth0AuthRegister /> },
             { path: 'forgot-password', element: <Auth0AuthForgotPassword /> },
@@ -91,6 +93,7 @@ const LoginRoutes = {
         {
           path: APP_AUTH === AuthProvider.AWS ? '/' : 'aws',
           children: [
+            { index: true, element: <AwsAuthLogin /> },
             { path: 'login', element: <AwsAuthLogin /> },
             { path: 'register', element: <AwsAuthRegister /> },
             { path: 'forgot-password', element: <AwsAuthForgotPassword /> },
@@ -102,6 +105,7 @@ const LoginRoutes = {
         {
           path: APP_AUTH === AuthProvider.SUPABASE ? '/' : 'supabase',
           children: [
+            { index: true, element: <SupabaseAuthLogin /> },
             { path: 'login', element: <SupabaseAuthLogin /> },
             { path: 'register', element: <SupabaseAuthRegister /> },
             { path: 'forgot-password', element: <SupabaseAuthForgotPassword /> },

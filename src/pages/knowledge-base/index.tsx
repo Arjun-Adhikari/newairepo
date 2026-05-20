@@ -1,4 +1,4 @@
-import KnowledgeBaseForm from "components/KnowledgeBaseForm";
+import KnowledgeBaseForm from "components/knowledge-base/KnowledgeBaseForm";
 
 export default function KnowledgeBasePage() {
   return <KnowledgeBaseForm />;

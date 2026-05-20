@@ -1,13 +1,13 @@
 import { use } from 'react';
 
 // auth provider
-import AuthContext from 'contexts/JWTContext';
+import AuthContext from 'contexts/SupabaseContext';
 // import AuthContext from 'contexts/FirebaseContext';
 // import AuthContext from 'contexts/Auth0Context';
 // import AuthContext from 'contexts/AWSCognitoContext';
 // import AuthContext from 'contexts/SupabaseContext';
 
-// ==============================|| AUTH HOOKS ||============================== //
+// ==============================|| AUTH HOOKS ||============================== /`/
 
 export default function useAuth() {
   const context = use(AuthContext);

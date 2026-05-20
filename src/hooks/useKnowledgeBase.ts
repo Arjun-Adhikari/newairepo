@@ -15,7 +15,7 @@ export function useKnowledgeBase() {
 
       return true;
     } catch (error) {
-      console.error(error);
+      console.error("Failed to save knowledge base:", error);
 
       return false;
     } finally {

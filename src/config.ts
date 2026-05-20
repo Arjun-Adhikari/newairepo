@@ -59,7 +59,9 @@ export enum AuthProvider {
   SUPABASE = 'supabase'
 }
 
-export const APP_AUTH: AuthProvider = AuthProvider.JWT;
+// src/config.ts
+export const APP_AUTH: AuthProvider = AuthProvider.SUPABASE;
+
 export const DEFAULT_THEME_MODE: ThemeMode = ThemeMode.SYSTEM;
 
 // ==============================|| THEME CONFIG ||============================== //
