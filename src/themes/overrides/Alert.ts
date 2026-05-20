@@ -37,7 +37,8 @@ export default function Alert(theme: Theme) {
             {
               props: { variant: 'standard' },
               style: ({ ownerState }: { ownerState: AlertProps }) => {
-                const paletteColor = theme.palette[ownerState.color as keyof Palette] as PaletteColor;
+                const color = ownerState.color || ownerState.severity || 'info';
+                const paletteColor = theme.palette[color as keyof Palette] as PaletteColor;
                 return {
                   position: 'relative',
                   backgroundColor: paletteColor.lighter,
@@ -63,7 +64,8 @@ export default function Alert(theme: Theme) {
             {
               props: { variant: 'filled' },
               style: ({ ownerState }: { ownerState: AlertProps }) => {
-                const paletteColor = theme.palette[ownerState.color as keyof Palette] as PaletteColor;
+                const color = ownerState.color || ownerState.severity || 'info';
+                const paletteColor = theme.palette[color as keyof Palette] as PaletteColor;
                 return {
                   color: theme.vars.palette.grey[0],
                   backgroundColor: paletteColor.main,

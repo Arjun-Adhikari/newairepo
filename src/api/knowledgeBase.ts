@@ -27,6 +27,8 @@ User Phrases: ${formData.common_user_phrases || ""}
 
     const embedding = functionData.embedding;
 
+    console.log("embedding:::",embedding)
+
     const { data, error } = await supabase
       .from("knowledge_base")
       .insert({
