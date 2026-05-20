@@ -1,80 +1,110 @@
-import OpenAI from "openai";
 
 import { supabase } from "./supabase";
 
 import { KnowledgeBaseFormData } from "types/knowledgeBase";
 
-const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true,
-});
 
-export async function saveKnowledgeBase(formData: KnowledgeBaseFormData) {
-  const textToEmbed = `
+export async function saveKnowledgeBase(
+  formData: KnowledgeBaseFormData
+) {
+  try {
+    console.log("Saving knowledge base entry with data:", formData);
+
+    // TEXT USED FOR EMBEDDING
+    const textToEmbed = `
 Title:
 ${formData.title}
 
 Question:
-${formData.question}
+${formData.question || ""}
 
 Answer:
-${formData.answer}
+${formData.answer || ""}
 
 Content:
-${formData.content}
+${formData.content || ""}
 
 Category:
-${formData.category}
+${formData.category || ""}
 
 Keywords:
-${formData.keywords}
+${formData.keywords || ""}
 
 Tags:
-${formData.tags}
+${formData.tags || ""}
+
+User Phrases:
+${formData.common_user_phrases || ""}
 `;
 
-  // GENERATE EMBEDDING
-  const embeddingResponse = await openai.embeddings.create({
-    model: "text-embedding-3-small",
-    input: textToEmbed,
-  });
+    const response = await fetch(
+      "https://pwapuqdeixecueqxjhoo.supabase.co/functions/v1/generate-embedding",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: textToEmbed,
+        }),
+      }
+    );
 
-  const embedding = embeddingResponse.data[0].embedding;
+    const result = await response.json();
 
-  // INSERT INTO SUPABASE
-  const { data, error } = await supabase.from("knowledge_base").insert({
-    type: formData.type,
+    if (!response.ok) {
+      throw new Error(result.error);
+    }
 
-    title: formData.title,
+    const embedding = result.embedding;
 
-    question: formData.question,
+    console.log("Embedding:", embedding);
 
-    answer: formData.answer,
 
-    content: formData.content,
+    // INSERT INTO SUPABASE
+    const { data, error } = await supabase
+      .from("knowledge_base")
+      .insert({
+        type: formData.type,
 
-    category: formData.category,
+        title: formData.title,
 
-    tags: formData.tags?.split(",").map((tag) => tag.trim()),
+        question: formData.question,
 
-    keywords: formData.keywords?.split(",").map((keyword) => keyword.trim()),
+        answer: formData.answer,
 
-    common_user_phrases: formData.common_user_phrases
-      ?.split(",")
-      .map((phrase) => phrase.trim()),
+        content: formData.content,
 
-    priority: Number(formData.priority),
+        category: formData.category,
 
-    visibility: formData.visibility,
+        tags: formData.tags?.split(",").map((tag) => tag.trim()),
 
-    is_active: formData.is_active,
+        keywords: formData.keywords
+          ?.split(",")
+          .map((keyword) => keyword.trim()),
 
-    embedding,
-  });
+        common_user_phrases: formData.common_user_phrases?.split(",").map((phrase) => phrase.trim()),
 
-  if (error) {
-    throw error;
+        priority: Number(formData.priority),
+
+        visibility: formData.visibility,
+
+        is_active: formData.is_active,
+
+        embedding,
+      })
+      .select();
+
+    if (error) {
+      console.error("Database Insert Error:", error);
+      throw error;
+    }
+
+    console.log("Inserted Successfully:", data);
+
+    return data;
+  } catch (err) {
+    console.error("Upload Error:", err);
+    throw err;
   }
-
-  return data;
 }
