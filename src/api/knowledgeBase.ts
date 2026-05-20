@@ -1,96 +1,110 @@
-import OpenAI from "openai";
 
 import { supabase } from "./supabase";
 
 import { KnowledgeBaseFormData } from "types/knowledgeBase";
 
-const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true,
-});
 
-export async function saveKnowledgeBase(formData: KnowledgeBaseFormData) {
-  const textToEmbed = `
+export async function saveKnowledgeBase(
+  formData: KnowledgeBaseFormData
+) {
+  try {
+    console.log("Saving knowledge base entry with data:", formData);
+
+    // TEXT USED FOR EMBEDDING
+    const textToEmbed = `
 Title:
 ${formData.title}
 
 Question:
-${formData.question}
+${formData.question || ""}
 
 Answer:
-${formData.answer}
+${formData.answer || ""}
 
 Content:
-${formData.content}
+${formData.content || ""}
 
 Category:
-${formData.category}
+${formData.category || ""}
 
 Keywords:
-${formData.keywords}
+${formData.keywords || ""}
 
 Tags:
-${formData.tags}
+${formData.tags || ""}
 
-Steps:
-${formData.steps.map((s, i) => `${i + 1}. ${s.text}`).join("\n")}
-`.trim();
+User Phrases:
+${formData.common_user_phrases || ""}
+`;
 
-  // GENERATE EMBEDDING
-  const embeddingResponse = await openai.embeddings.create({
-    model: "text-embedding-3-small",
-    input: textToEmbed,
-  });
+    const response = await fetch(
+      "https://pwapuqdeixecueqxjhoo.supabase.co/functions/v1/generate-embedding",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: textToEmbed,
+        }),
+      }
+    );
 
-  const embedding = embeddingResponse.data[0].embedding;
+    const result = await response.json();
 
-  // Steps stored as JSONB: [{ text: string }, ...]
-  // Filter out any empty steps the user left blank
-  const steps = formData.steps
-    .map((s) => ({ text: s.text.trim() }))
-    .filter((s) => s.text.length > 0);
+    if (!response.ok) {
+      throw new Error(result.error);
+    }
 
-  // INSERT INTO SUPABASE
-  const { data, error } = await supabase.from("knowledge_base").insert({
-    type: formData.type,
+    const embedding = result.embedding;
 
-    title: formData.title,
+    console.log("Embedding:", embedding);
 
-    question: formData.question,
 
-    answer: formData.answer,
+    // INSERT INTO SUPABASE
+    const { data, error } = await supabase
+      .from("knowledge_base")
+      .insert({
+        type: formData.type,
 
-    content: formData.content,
+        title: formData.title,
 
-    category: formData.category,
+        question: formData.question,
 
-    tags: formData.tags
-      ? formData.tags.split(",").map((tag) => tag.trim()).filter(Boolean)
-      : [],
+        answer: formData.answer,
 
-    keywords: formData.keywords
-      ? formData.keywords.split(",").map((keyword) => keyword.trim()).filter(Boolean)
-      : [],
+        content: formData.content,
 
-    common_user_phrases: formData.common_user_phrases
-      ? formData.common_user_phrases.split(",").map((phrase) => phrase.trim()).filter(Boolean)
-      : [],
+        category: formData.category,
 
-    steps,
+        tags: formData.tags?.split(",").map((tag) => tag.trim()),
 
-    priority: Number(formData.priority),
+        keywords: formData.keywords
+          ?.split(",")
+          .map((keyword) => keyword.trim()),
 
-    visibility: formData.visibility,
+        common_user_phrases: formData.common_user_phrases?.split(",").map((phrase) => phrase.trim()),
 
-    // Default to true if not set
-    is_active: formData.is_active ?? true,
+        priority: Number(formData.priority),
 
-    embedding,
-  });
+        visibility: formData.visibility,
 
-  if (error) {
-    throw error;
+        is_active: formData.is_active,
+
+        embedding,
+      })
+      .select();
+
+    if (error) {
+      console.error("Database Insert Error:", error);
+      throw error;
+    }
+
+    console.log("Inserted Successfully:", data);
+
+    return data;
+  } catch (err) {
+    console.error("Upload Error:", err);
+    throw err;
   }
-
-  return data;
 }
